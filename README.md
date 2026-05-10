@@ -2,16 +2,6 @@
 
 CarpoolConnect is a community driven platform designed to match drivers with commuters. It helps everyday vehicle owners share their cars with people seeking affordable and reliable rides along similar routes. The project uses real time GPS tracking and a volunteer based token reward system to transform extra seat capacity into shared value.
 
-## Project Details
-
-*   **Course**: Mobile Applications (CS468)
-*   **Institution**: HiLCoE School of Computer Science & Technology
-*   **Group Members**:
-    1. Alazar Abebe
-    2. Alazar Gebremedhin
-    3. Amir Siraj
-    4. Biruk Melaku
-    5. Dagmawi Alemayehu
 
 ## Features
 
