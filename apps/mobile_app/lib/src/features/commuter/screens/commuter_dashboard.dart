@@ -25,7 +25,6 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
 
   LatLng _carPosition = const LatLng(9.033543, 38.753654); // Piassa
   final List<LatLng> _routePoints = [];
-  final List<LatLng> _breadcrumbPoints = [];
   int _currentPointIndex = 0;
   Timer? _simulationTimer;
   
@@ -121,8 +120,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
         _isSimulating = true;
         _isSearching = false;
         _carPosition = _routePoints.first;
-        _breadcrumbPoints.clear();
-        _breadcrumbPoints.add(_routePoints.first);
+        _currentPointIndex = 0;
       });
       _mapController.move(_carPosition, 16.0);
     } else {
@@ -146,8 +144,6 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
       _rideInProgress = true;
       _showDriverDetails = false;
       _currentPointIndex = 0;
-      _breadcrumbPoints.clear();
-      _breadcrumbPoints.add(_routePoints.first);
     });
 
     _moveController?.duration = const Duration(milliseconds: 1000);
@@ -160,19 +156,12 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             _currentPointIndex++;
             _targetPosition = _routePoints[_currentPointIndex];
           });
+          _moveController?.forward(from: 0);
         }
-        
-        _moveController?.forward(from: 0).then((_) {
-          if (mounted) {
-            setState(() {
-              _breadcrumbPoints.add(_targetPosition!);
-            });
-          }
-        });
 
         final dest = _routePoints.last;
         final distance = _calculateDistance(_targetPosition!, dest);
-        if (distance < 10) {
+        if (distance < 5) {
           _finishRide();
         }
       } else {
@@ -197,6 +186,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
         setState(() {
           _rideInProgress = false;
           _rideFinished = true;
+          _carPosition = _routePoints.last; // Ensure final snap
         });
       }
     });
@@ -225,9 +215,12 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             }
             return FlutterMap(
               mapController: _mapController,
-              options: const MapOptions(
-                initialCenter: LatLng(9.033543, 38.753654),
+              options: MapOptions(
+                initialCenter: const LatLng(9.033543, 38.753654),
                 initialZoom: 15.0,
+                onMapReady: () {
+                   _mapController.move(_carPosition, 15.0);
+                },
               ),
               children: [
                 TileLayer(
@@ -238,8 +231,11 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                   PolylineLayer(
                     polylines: [
                       Polyline(
-                        points: [..._breadcrumbPoints, _carPosition],
-                        strokeWidth: 4,
+                        points: [
+                          ..._routePoints.take(_currentPointIndex),
+                          _carPosition,
+                        ],
+                        strokeWidth: 5,
                         color: Theme.of(context).primaryColor,
                       ),
                     ],
@@ -319,71 +315,6 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                       child: const Text('Find Ride', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-
-        // SOS / Progress Card (Fixed: More robust constraints and explicit size)
-        if (_rideInProgress)
-          Positioned(
-            bottom: 24,
-            left: 20,
-            right: 20,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 100),
-              child: Card(
-                elevation: 12,
-                color: Theme.of(context).colorScheme.errorContainer,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Ride in progress',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onErrorContainer,
-                              ),
-                            ),
-                            Text(
-                              'To: 4 Kilo',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                        child: const Text('SOS'),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
