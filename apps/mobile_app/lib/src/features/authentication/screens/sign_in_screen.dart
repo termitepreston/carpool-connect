@@ -34,7 +34,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -52,7 +52,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   ],
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 64),
               // Terms of Service Checkbox
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
