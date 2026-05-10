@@ -1,0 +1,19 @@
+name: carpool_connect
+
+packages:
+  - "apps/*"
+  - "packages/*"
+
+scripts:
+  analyze:
+    run: |
+      melos exec -c 1 -- "dart analyze . --fatal-infos"
+    description: Run dart analyzer in a specific package.
+  test:
+    run: |
+      melos exec -c 1 -- "flutter test"
+    description: Run tests.
+  build_runner:
+    run: |
+      melos exec -c 1 --depends-on="build_runner" -- "dart run build_runner build --delete-conflicting-outputs"
+    description: Run build_runner for all packages.

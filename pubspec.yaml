@@ -1,0 +1,15 @@
+name: carpool_connect
+description: A new Flutter project.
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+workspace:
+  - packages/core
+  - packages/models
+  - packages/ui_kit
+  - apps/mobile_app
+
+dev_dependencies:
+  melos: ^7.7.0
