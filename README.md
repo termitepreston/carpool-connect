@@ -35,11 +35,11 @@ This project is managed as a Melos monorepo:
 
 ### Running the App
 
-You can run the mobile app using the Melos script:
+You can run the mobile app using one of the following Melos scripts:
 
-```bash
-melos run run_mobile
-```
+*   **Linux**: `melos run run_mobile_linux`
+*   **Windows**: `melos run run_mobile_windows`
+*   **Chrome**: `melos run run_mobile_chrome`
 
 Or manually:
 
