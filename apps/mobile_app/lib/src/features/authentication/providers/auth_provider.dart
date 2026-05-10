@@ -6,10 +6,13 @@ part 'auth_provider.g.dart';
 
 @riverpod
 class Auth extends _$Auth {
+  static const _splashDuration = Duration(seconds: 15);
+
   @override
   Future<User?> build() async {
-    AppLogger.info('Auth: Initializing and showing splash for 6s...');
-    await Future.delayed(const Duration(seconds: 6));
+    AppLogger.info(
+        'Auth: Initializing and showing splash for ${_splashDuration.inSeconds}s...');
+    await Future.delayed(_splashDuration);
     return null;
   }
 

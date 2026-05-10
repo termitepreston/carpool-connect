@@ -2,13 +2,14 @@
 
 CarpoolConnect is a community driven platform designed to match drivers with commuters. It helps everyday vehicle owners share their cars with people seeking affordable and reliable rides along similar routes. The project uses real time GPS tracking and a volunteer based token reward system to transform extra seat capacity into shared value.
 
+## Demo
+![Demo of CarpoolConnect](./docs/capture.gif)
 
 ## Features
 
 *   **Map Centric UI**: A modern interface where the map is the primary background for all journey activities.
 *   **Real Time Journey Simulation**: Includes a full simulation flow from finding a ride to active tracking and rating.
 *   **Token System**: A volunteer based economy where drivers earn tokens for sharing rides.
-*   **Safety First**: Built in SOS emergency features and driver ratings.
 *   **Localization**: Support for both English and Amharic languages.
 
 ## Project Structure

@@ -12,7 +12,11 @@ class CommuterDashboard extends StatefulWidget {
   State<CommuterDashboard> createState() => _CommuterDashboardState();
 }
 
-class _CommuterDashboardState extends State<CommuterDashboard> with TickerProviderStateMixin {
+class _CommuterDashboardState extends State<CommuterDashboard>
+    with TickerProviderStateMixin {
+  static const _simulationInterval =
+      Duration(milliseconds: 500); // 120 km/hr if 1s was 60km/hr
+
   final MapController _mapController = MapController();
   final TextEditingController _startController = TextEditingController();
   final TextEditingController _destController = TextEditingController();
@@ -27,11 +31,11 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
   final List<LatLng> _routePoints = [];
   int _currentPointIndex = 0;
   Timer? _simulationTimer;
-  
+
   AnimationController? _moveController;
   LatLng? _oldPosition;
   LatLng? _targetPosition;
-  
+
   double _userRating = 0;
 
   @override
@@ -40,7 +44,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
     _loadRoute();
     _moveController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: _simulationInterval,
     );
   }
 
@@ -113,7 +117,8 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
     final dest = _destController.text.toLowerCase();
 
     final isStartPiassa = start == 'piassa' || start == 'ፒያሳ';
-    final isDest4Kilo = dest == '4kilo' || dest == '4 kilo' || dest == '4 ኪሎ' || dest == '4ኪሎ';
+    final isDest4Kilo =
+        dest == '4kilo' || dest == '4 kilo' || dest == '4 ኪሎ' || dest == '4ኪሎ';
 
     if (isStartPiassa && isDest4Kilo) {
       setState(() {
@@ -132,7 +137,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
     setState(() => _isSearching = true);
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    
+
     setState(() => _isSearching = false);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('No ride found. Please try again.')),
@@ -146,9 +151,9 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
       _currentPointIndex = 0;
     });
 
-    _moveController?.duration = const Duration(milliseconds: 1000);
-    
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
+    _moveController?.duration = _simulationInterval;
+
+    _simulationTimer = Timer.periodic(_simulationInterval, (timer) {
       if (_currentPointIndex < _routePoints.length - 1) {
         if (mounted) {
           setState(() {
@@ -173,9 +178,12 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
   double _calculateDistance(LatLng p1, LatLng p2) {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 - c((p2.latitude - p1.latitude) * p) / 2 +
-        c(p1.latitude * p) * c(p2.latitude * p) *
-            (1 - c((p2.longitude - p1.longitude) * p)) / 2;
+    var a = 0.5 -
+        c((p2.latitude - p1.latitude) * p) / 2 +
+        c(p1.latitude * p) *
+            c(p2.latitude * p) *
+            (1 - c((p2.longitude - p1.longitude) * p)) /
+            2;
     return 12742 * asin(sqrt(a)) * 1000;
   }
 
@@ -208,9 +216,15 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
         AnimatedBuilder(
           animation: _moveController!,
           builder: (context, child) {
-            if (_rideInProgress && _oldPosition != null && _targetPosition != null) {
-              final lat = _oldPosition!.latitude + (_targetPosition!.latitude - _oldPosition!.latitude) * _moveController!.value;
-              final lon = _oldPosition!.longitude + (_targetPosition!.longitude - _oldPosition!.longitude) * _moveController!.value;
+            if (_rideInProgress &&
+                _oldPosition != null &&
+                _targetPosition != null) {
+              final lat = _oldPosition!.latitude +
+                  (_targetPosition!.latitude - _oldPosition!.latitude) *
+                      _moveController!.value;
+              final lon = _oldPosition!.longitude +
+                  (_targetPosition!.longitude - _oldPosition!.longitude) *
+                      _moveController!.value;
               _carPosition = LatLng(lat, lon);
             }
             return FlutterMap(
@@ -219,7 +233,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                 initialCenter: const LatLng(9.033543, 38.753654),
                 initialZoom: 15.0,
                 onMapReady: () {
-                   _mapController.move(_carPosition, 15.0);
+                  _mapController.move(_carPosition, 15.0);
                 },
               ),
               children: [
@@ -256,9 +270,13 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
-                              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 5)
+                              ],
                             ),
-                            child: Icon(Icons.directions_car, color: Theme.of(context).primaryColor, size: 20),
+                            child: Icon(Icons.directions_car,
+                                color: Theme.of(context).primaryColor,
+                                size: 20),
                           ),
                         ),
                       ),
@@ -271,14 +289,18 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
         ),
 
         // Route Chooser
-        if (!_isSearching && !_isSimulating && !_rideInProgress && !_rideFinished)
+        if (!_isSearching &&
+            !_isSimulating &&
+            !_rideInProgress &&
+            !_rideFinished)
           Positioned(
             bottom: 24,
             left: 20,
             right: 20,
             child: Card(
               elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -288,8 +310,11 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                       controller: _startController,
                       decoration: InputDecoration(
                         hintText: 'Start (e.g. Piassa)',
-                        prefixIcon: const Icon(Icons.my_location, color: Colors.blue),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                        prefixIcon:
+                            const Icon(Icons.my_location, color: Colors.blue),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surfaceVariant,
                       ),
@@ -299,8 +324,11 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                       controller: _destController,
                       decoration: InputDecoration(
                         hintText: 'Destination (e.g. 4 Kilo)',
-                        prefixIcon: const Icon(Icons.location_on, color: Colors.red),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                        prefixIcon:
+                            const Icon(Icons.location_on, color: Colors.red),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surfaceVariant,
                       ),
@@ -310,9 +338,12 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                       onPressed: _checkSimulation,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(56),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: const Text('Find Ride', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: const Text('Find Ride',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -328,7 +359,8 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             right: 20,
             child: Card(
               elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -336,18 +368,31 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(radius: 32, backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1), child: const Text('HS', style: TextStyle(fontWeight: FontWeight.bold))),
+                        CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: 0.1),
+                            child: const Text('HS',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Henok Shimelis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                              const Text('Toyota Corolla • ABC-123', style: TextStyle(color: Colors.grey)),
+                              const Text('Henok Shimelis',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18)),
+                              const Text('Toyota Corolla • ABC-123',
+                                  style: TextStyle(color: Colors.grey)),
                               Row(
                                 children: const [
-                                  Icon(Icons.star, color: Colors.orange, size: 18),
-                                  Text(' 4.9 (124 rides)', style: TextStyle(fontWeight: FontWeight.w500)),
+                                  Icon(Icons.star,
+                                      color: Colors.orange, size: 18),
+                                  Text(' 4.9 (124 rides)',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500)),
                                 ],
                               ),
                             ],
@@ -364,8 +409,12 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => setState(() => _showDriverDetails = false),
-                            style: OutlinedButton.styleFrom(padding: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                            onPressed: () =>
+                                setState(() => _showDriverDetails = false),
+                            style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.all(16),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12))),
                             child: const Text('Cancel'),
                           ),
                         ),
@@ -373,7 +422,10 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _startJourney,
-                            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                            style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.all(16),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12))),
                             child: const Text('Book Ride'),
                           ),
                         ),
@@ -393,43 +445,56 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             right: 20,
             child: Card(
               elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 64),
+                    const Icon(Icons.check_circle,
+                        color: Colors.green, size: 64),
                     const SizedBox(height: 16),
-                    const Text('Arrived at 4 Kilo!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const Text('Arrived at 4 Kilo!',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    const Text('How was your ride with Henok Shimelis?', textAlign: TextAlign.center),
+                    const Text('How was your ride with Henok Shimelis?',
+                        textAlign: TextAlign.center),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(5, (index) {
                         return IconButton(
                           icon: Icon(
-                            index < _userRating ? Icons.star : Icons.star_border,
+                            index < _userRating
+                                ? Icons.star
+                                : Icons.star_border,
                             size: 40,
                             color: Colors.orange,
                           ),
-                          onPressed: () => setState(() => _userRating = index + 1.0),
+                          onPressed: () =>
+                              setState(() => _userRating = index + 1.0),
                         );
                       }),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: _userRating == 0 ? null : () {
-                        setState(() {
-                          _rideFinished = false;
-                          _isSimulating = false;
-                          _startController.clear();
-                          _destController.clear();
-                          _userRating = 0;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                      onPressed: _userRating == 0
+                          ? null
+                          : () {
+                              setState(() {
+                                _rideFinished = false;
+                                _isSimulating = false;
+                                _startController.clear();
+                                _destController.clear();
+                                _userRating = 0;
+                              });
+                            },
+                      style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16))),
                       child: const Text('Submit Rating'),
                     ),
                   ],
@@ -437,7 +502,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
               ),
             ),
           ),
-            
+
         if (_isSearching)
           Container(
             color: Colors.black.withValues(alpha: 0.3),
