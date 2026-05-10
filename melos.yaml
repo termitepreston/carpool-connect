@@ -9,15 +9,15 @@ scripts:
     run: |
       melos exec -c 1 -- "dart analyze . --fatal-infos"
     description: Run dart analyzer in a specific package.
-  run:mobile:
+  run_mobile:
     run: |
-      melos exec -c 1 --scope="mobile_app" -- "flutter run"
+      melos exec -c 1 --scope="mobile_app" -- "flutter run -d linux"
     description: Run the mobile app.
-  test:all:
+  test_all:
     run: |
       melos exec -c 1 -- "flutter test"
     description: Run all tests in the workspace.
-  build:apk:
+  build_apk:
     run: |
       melos exec -c 1 --scope="mobile_app" -- "flutter build apk"
     description: Build the Android APK.
@@ -25,3 +25,6 @@ scripts:
     run: |
       melos exec -c 1 --depends-on="build_runner" -- "dart run build_runner build --delete-conflicting-outputs"
     description: Run build_runner for all packages.
+  bootstrap:
+    run: melos bootstrap
+    description: Bootstrap the workspace.

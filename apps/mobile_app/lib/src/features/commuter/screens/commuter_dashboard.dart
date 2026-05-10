@@ -25,11 +25,10 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
 
   LatLng _carPosition = const LatLng(9.033543, 38.753654); // Piassa
   final List<LatLng> _routePoints = [];
-  final List<LatLng> _drivenPoints = [];
+  final List<LatLng> _breadcrumbPoints = [];
   int _currentPointIndex = 0;
   Timer? _simulationTimer;
   
-  // For smooth interpolation
   AnimationController? _moveController;
   LatLng? _oldPosition;
   LatLng? _targetPosition;
@@ -108,7 +107,6 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
       const LatLng(9.034403, 38.763108), // 4 Kilo
     ];
     _routePoints.addAll(pts);
-    _drivenPoints.add(pts.first);
   }
 
   void _checkSimulation() {
@@ -122,9 +120,9 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
       setState(() {
         _isSimulating = true;
         _isSearching = false;
-        _carPosition = const LatLng(9.033543, 38.753654);
-        _drivenPoints.clear();
-        _drivenPoints.add(_carPosition);
+        _carPosition = _routePoints.first;
+        _breadcrumbPoints.clear();
+        _breadcrumbPoints.add(_routePoints.first);
       });
       _mapController.move(_carPosition, 16.0);
     } else {
@@ -148,22 +146,26 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
       _rideInProgress = true;
       _showDriverDetails = false;
       _currentPointIndex = 0;
-      _drivenPoints.clear();
-      _drivenPoints.add(_routePoints.first);
+      _breadcrumbPoints.clear();
+      _breadcrumbPoints.add(_routePoints.first);
     });
 
     _moveController?.duration = const Duration(milliseconds: 1000);
     
     _simulationTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       if (_currentPointIndex < _routePoints.length - 1) {
-        _oldPosition = _routePoints[_currentPointIndex];
-        _currentPointIndex++;
-        _targetPosition = _routePoints[_currentPointIndex];
+        if (mounted) {
+          setState(() {
+            _oldPosition = _routePoints[_currentPointIndex];
+            _currentPointIndex++;
+            _targetPosition = _routePoints[_currentPointIndex];
+          });
+        }
         
         _moveController?.forward(from: 0).then((_) {
           if (mounted) {
             setState(() {
-              _drivenPoints.add(_targetPosition!);
+              _breadcrumbPoints.add(_targetPosition!);
             });
           }
         });
@@ -224,8 +226,8 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             return FlutterMap(
               mapController: _mapController,
               options: const MapOptions(
-                initialCenter: LatLng(9.0300, 38.7400),
-                initialZoom: 13.0,
+                initialCenter: LatLng(9.033543, 38.753654),
+                initialZoom: 15.0,
               ),
               children: [
                 TileLayer(
@@ -236,7 +238,7 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                   PolylineLayer(
                     polylines: [
                       Polyline(
-                        points: List.from(_drivenPoints)..add(_carPosition),
+                        points: [..._breadcrumbPoints, _carPosition],
                         strokeWidth: 4,
                         color: Theme.of(context).primaryColor,
                       ),
@@ -267,17 +269,6 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
                     ],
                   ),
                 ],
-                if (!_isSimulating && !_rideInProgress && !_rideFinished)
-                  const MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: LatLng(9.0300, 38.7400),
-                        width: 80,
-                        height: 80,
-                        child: Icon(Icons.location_on, color: Colors.red, size: 40),
-                      ),
-                    ],
-                  ),
               ],
             );
           },
@@ -333,63 +324,66 @@ class _CommuterDashboardState extends State<CommuterDashboard> with TickerProvid
             ),
           ),
 
-        // SOS / Progress Card (Fixed: Moved to bottom and made compact)
+        // SOS / Progress Card (Fixed: More robust constraints and explicit size)
         if (_rideInProgress)
           Positioned(
             bottom: 24,
             left: 20,
             right: 20,
-            child: Card(
-              elevation: 12,
-              color: Theme.of(context).colorScheme.errorContainer,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        color: Theme.of(context).colorScheme.onErrorContainer,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 100),
+              child: Card(
+                elevation: 12,
+                color: Theme.of(context).colorScheme.errorContainer,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Ride in progress',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onErrorContainer,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Ride in progress',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onErrorContainer,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'Destination: 4 Kilo',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.7),
+                            Text(
+                              'To: 4 Kilo',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.7),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        child: const Text('SOS'),
                       ),
-                      icon: const Icon(Icons.warning_amber_rounded, size: 20),
-                      label: const Text('SOS'),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

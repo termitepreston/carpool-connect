@@ -38,7 +38,7 @@ This project is managed as a Melos monorepo:
 You can run the mobile app using the Melos script:
 
 ```bash
-melos run run:mobile
+melos run run_mobile
 ```
 
 Or manually:
@@ -53,7 +53,7 @@ flutter run
 To run all tests across the entire workspace:
 
 ```bash
-melos run test:all
+melos run test_all
 ```
 
 ### Building for Production
@@ -61,9 +61,9 @@ melos run test:all
 To build the Android APK:
 
 ```bash
-melos run build:apk
+melos run build_apk
 ```
 
 ## Architecture
 
-For a detailed look at the technical implementation and design patterns used in this project, please refer to the [ARCHITECTURE.md](./ARCHITECTURE.md) file.
+For a detailed look at the technical implementation and design patterns used in this project, please refer to the [project requirements](./docs/project-phase-i.new.pdf) PDF.
